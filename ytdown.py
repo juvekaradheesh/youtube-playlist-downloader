@@ -76,7 +76,7 @@ print('WELCOME TO PLAYLIST DOWNLOADER DEVELOPED BY - www.github.com/mohit0101')
 
 url = str(input("\nspecify you playlist url\n"))
 
-print('\nCHOOSE ANY ONE - TYPE 360P OR 720P\n')
+print('\nCHOOSE ANY ONE - TYPE 360P OR 720P OR MP3\n')
 user_res = str(input()).lower()
 
 
@@ -87,14 +87,15 @@ our_links = link_snatcher(url)
 os.chdir(BASE_DIR)
 
 new_folder_name = foldertitle(url)
-print(new_folder_name[:7])
+new_folder_name = new_folder_name[:7] if user_res == '360p' or user_res == '720p' else new_folder_name[:7] + '_mp3'
+print(new_folder_name)
 
 try:
-    os.mkdir(new_folder_name[:7])
+    os.mkdir(new_folder_name)
 except:
     print('folder already exists')
 
-os.chdir(new_folder_name[:7])
+os.chdir(new_folder_name)
 SAVEPATH = os.getcwd()
 print(f'\n files will be saved to {SAVEPATH}')
 
@@ -109,13 +110,20 @@ for root, dirs, files in os.walk(".", topdown=False):
         else:
             x.append(str(name))
 
+try:
+    Start_point = int(input("Enter a start point, if you want to start download the playlist from the start enter 0:"))
+except:
+    Start_point = 0
+
+print("the program start download from video number", Start_point)
 
 print('\nconnecting . . .\n')
-
-
-print()
-
+vid_num =  0
 for link in our_links:
+    vid_num += 1
+    if  vid_num < Start_point:
+        continue
+    print("",vid_num)
     try:
         yt = YouTube(link)
         main_title = yt.title
@@ -135,6 +143,14 @@ for link in our_links:
             print('Downloading. . . ' + vid.default_filename + ' and its file size -> ' + str(round(vid.filesize / (1024 * 1024), 2)) + ' MB.')
             vid.download(SAVEPATH)
             print('Video Downloaded')
+        elif user_res == 'mp3':
+            vid = yt.streams.filter(only_audio=True).first()
+            print('Downloading. . . ' + vid.default_filename + ' and its file size -> ' + str(round(vid.filesize / (1024 * 1024), 2)) + ' MB.')
+            out_file = vid.download(SAVEPATH)
+            base, ext = os.path.splitext(out_file)
+            new_file = base + f'[{vid_num}].mp3'
+            os.rename(out_file, new_file)
+            print('Song Downloaded')
         else:
             print('something is wrong.. please rerun the script')
 
